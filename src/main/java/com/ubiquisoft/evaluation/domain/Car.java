@@ -3,8 +3,11 @@ package com.ubiquisoft.evaluation.domain;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.ubiquisoft.evaluation.domain.PartType.*;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -16,22 +19,26 @@ public class Car {
 
 	private List<Part> parts;
 
-	public Map<PartType, Integer> getMissingPartsMap() {
-		/*
-		 * Return map of the part types missing.
-		 *
-		 * Each car requires one of each of the following types:
-		 *      ENGINE, ELECTRICAL, FUEL_FILTER, OIL_FILTER
-		 * and four of the type: TIRE
-		 *
-		 * Example: a car only missing three of the four tires should return a map like this:
-		 *
-		 *      {
-		 *          "TIRE": 3
-		 *      }
-		 */
+	private static final Map<PartType, Integer> REQUIRED_PART_COUNT = new HashMap<>();
 
-		return null;
+	static {
+		REQUIRED_PART_COUNT.put(ENGINE, 1);
+		REQUIRED_PART_COUNT.put(ELECTRICAL, 1);
+		REQUIRED_PART_COUNT.put(FUEL_FILTER, 1);
+		REQUIRED_PART_COUNT.put(OIL_FILTER, 1);
+		REQUIRED_PART_COUNT.put(TIRE, 4);
+	}
+
+
+	public Map<PartType, Integer> getMissingPartsMap() {
+
+		HashMap<PartType, Integer> missingParts = new HashMap<>(REQUIRED_PART_COUNT);
+
+		this.parts.stream().map(Part::getType).forEach(
+				type -> missingParts.computeIfPresent(
+						type, (partType, count) -> count <= 1 ? null : count - 1));
+
+		return missingParts;
 	}
 
 	@Override

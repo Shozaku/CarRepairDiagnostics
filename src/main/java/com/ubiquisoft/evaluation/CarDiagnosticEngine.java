@@ -9,10 +9,14 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CarDiagnosticEngine {
 
 	public void executeDiagnostics(Car car) {
+
 		/*
 		 * Implement basic diagnostics and print results to console.
 		 *
@@ -23,13 +27,46 @@ public class CarDiagnosticEngine {
 		 *                then print the missing fields to the console
 		 *                in a similar manner to how the provided methods do.
 		 *
+		 */
+
+		boolean missingMake = car.getMake() == null || car.getMake().isEmpty();
+		boolean missingModel = car.getModel() == null || car.getModel().isEmpty();
+		boolean missingYear = car.getYear() == null || car.getYear().isEmpty();
+
+		if (missingMake) System.out.println("Car is missing Make");
+		if (missingModel) System.out.println("Car is missing Model");
+		if (missingYear) System.out.println("Car is missing Year");
+
+		if (missingMake || missingModel || missingYear) return;
+
+		/*
 		 *      Second  - Validate that no parts are missing using the 'getMissingPartsMap' method in the Car class,
 		 *                if one or more are then run each missing part and its count through the provided missing part method.
-		 *
-		 *      Third   - Validate that all parts are in working condition, if any are not
+		 */
+
+
+		Map<PartType, Integer> missingPartsMap = car.getMissingPartsMap();
+		if (!missingPartsMap.isEmpty()) {
+			missingPartsMap.forEach(this::printMissingPart);
+
+			return;
+		}
+
+		/*      Third   - Validate that all parts are in working condition, if any are not
 		 *                then run each non-working part through the provided damaged part method.
-		 *
-		 *      Fourth  - If validation succeeds for the previous steps then print something to the console informing the user as such.
+		 */
+
+		List<Part> damagedParts = car.getParts()
+		                             .stream()
+		                             .filter(part -> part.getCondition() != null && !part.isInWorkingCondition())
+		                             .collect(Collectors.toList());
+
+		damagedParts.forEach(part -> this.printDamagedPart(part.getType(), part.getCondition()));
+
+		if (damagedParts.isEmpty()) System.out.println("All parts found to be working");
+
+
+		/*      Fourth  - If validation succeeds for the previous steps then print something to the console informing the user as such.
 		 * A damaged part is one that has any condition other than NEW, GOOD, or WORN.
 		 *
 		 * Important:
@@ -38,8 +75,6 @@ public class CarDiagnosticEngine {
 		 * Treat the console as information being read by a user of this application. Attempts should be made to ensure
 		 * console output is as least as informative as the provided methods.
 		 */
-
-
 	}
 
 	private void printMissingPart(PartType partType, Integer count) {
